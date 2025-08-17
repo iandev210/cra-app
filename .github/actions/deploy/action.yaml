@@ -7,14 +7,13 @@ inputs:
     required: true
   is_prod:
     required: true
-  cf_dist_id:
+  cf_distribution_id:
     required: false
     default: ''
   invalidate_paths:
     required: false
     default: '/*'
   
-
 runs:
   using: composite
   steps:
@@ -27,9 +26,9 @@ runs:
       shell: bash
 
     - name: Invalidate CloudFront (prod only)
-      if: ${{ inputs.is_prod == 'true' && inputs.cf_dist_id != '' }}
+      if: ${{ inputs.is_prod == 'true' && inputs.cf_distribution_id != '' }}
       run: >-
         aws cloudfront create-invalidation
-        --distribution-id ${{ inputs.cf_dist_id }}
+        --distribution-id ${{ inputs.cf_distribution_id }}
         --paths "${{ inputs.invalidate_paths }}"
       shell: bash
