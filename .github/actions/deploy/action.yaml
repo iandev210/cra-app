@@ -18,13 +18,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v4
-      with:
-        node-version: ${{ inputs.node_version }}
     - run: npm ci
+      shell: bash
     - run: npm run build
+      shell: bash
     - name: Sync to S3
       run: aws s3 sync build/ s3://${{ inputs.s3_bucket }} --delete
+      shell: bash
 
     - name: Invalidate CloudFront (prod only)
       if: ${{ inputs.is_prod == 'true' && inputs.cf_dist_id != '' }}
@@ -32,3 +32,4 @@ runs:
         aws cloudfront create-invalidation
         --distribution-id ${{ inputs.cf_dist_id }}
         --paths "${{ inputs.invalidate_paths }}"
+      shell: bash
