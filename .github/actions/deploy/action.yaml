@@ -1,0 +1,34 @@
+name: Deploy to S3
+
+inputs:
+  node_version:
+    required: true
+  s3_bucket:
+    required: true
+  is_prod:
+    required: true
+  cf_dist_id:
+    required: false
+    default: ''
+  invalidate_paths:
+    required: false
+    default: '/*'
+  
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+    - run: npm ci
+    - run: npm run build
+    - name: Sync to S3
+      run: aws s3 sync build/ s3://${{ inputs.s3_bucket }} --delete
+
+    - name: Invalidate CloudFront (prod only)
+      if: ${{ inputs.is_prod == 'true' && inputs.cf_dist_id != '' }}
+      run: >-
+        aws cloudfront create-invalidation
+        --distribution-id ${{ inputs.cf_dist_id }}
+        --paths "${{ inputs.invalidate_paths }}"

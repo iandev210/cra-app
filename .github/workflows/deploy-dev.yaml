@@ -1,0 +1,36 @@
+name: Deploy(dev)
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  NODE_VERSION: 20
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+      
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::906247012933:role/gha-deploy-role
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Deploy using composite action
+        uses: ./.github/actions/deploy
+        with:
+          s3_bucket: ${{ secrets.S3_BUCKET }}
+          is_prod: "false"
+          cf_distribution_id: ${{ secrets.CF_DISTRIBUTION_ID }}
